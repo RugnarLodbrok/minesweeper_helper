@@ -22,6 +22,10 @@ class Cell {
         this.is_green = false;
     }
 
+    value_neighbours() {
+        return this.neighbours.filter((n) => n.value >= 0);
+    }
+
     ij() {
         return this.i + '-' + this.j;
     }
@@ -29,18 +33,20 @@ class Cell {
     join(other) {
         this.neighbours.push(other);
         other.neighbours.push(this);
-        // console.log('join!')
     }
 
     check_is_to_solve() {
+        //prepare cell to solve
         this.is_red = false;
         this.is_green = false;
         this.is_to_sove = false;
-        if (this.value >= 0)
+        this.tmp_value = this.value - this.neighbours.filter((c) => c.value === CELL_MONSTER).length;
+        if (this.value !== CELL_CLOSED)
             return;
         for (let other of this.neighbours) {
             if (other.value >= 0) {
                 this.is_to_sove = true;
+                this.tmp_neigh = this.value_neighbours();
                 return
             }
         }
@@ -57,7 +63,7 @@ class Cell {
         sketch.textAlign('center', 'center');
         sketch.rect(x, y, CELL_SIZE, CELL_SIZE);
 
-        if (this.value === CELL_MONSTER){
+        if (this.value === CELL_MONSTER) {
             sketch.fill(255, 0, 0);
             sketch.circle(cx, cy, 24);
             return;

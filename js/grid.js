@@ -29,9 +29,7 @@ class Grid {
             sketch.background(220);
         else
             sketch.background(220, 150, 150);
-        this.iter_cells().map((c) => {
-            c.draw(sketch)
-        });
+        this.iter_cells().map((c) => c.draw(sketch))
     }
 
     xy_to_ij(x, y) {
@@ -79,30 +77,16 @@ class Grid {
     solve() {
         let self = this;
 
-        this.iter_cells().map((cell) => {
-            cell.check_is_to_solve();
-            cell.tmp_value = cell.value;
-        });
-
-        let value_cells = self.iter_cells().array().filter((c) => {
-            return c.value >= 0
-        });
+        // preparation
+        this.iter_cells().map((cell) => cell.check_is_to_solve());
         let cells = self.iter_cells(true).array();
-        for (let cell of cells) {
-            cell.tmp_neigh = cell.neighbours.filter((n) => {
-                return n.value >= 0
-            });
-        }
+        let value_cells = self.iter_cells().array().filter((c) => (c.value >= 0));
 
         function solve_wrapper(cells) {
             let solutions = [];
-            console.log('value cells:', value_cells);
             for (let solution of solve_recur(cells)) {
-                let viable = value_cells.every((c) => {
-                    return c.tmp_value === 0
-                });
+                let viable = value_cells.every((c) => c.tmp_value === 0);
                 if (viable) {
-                    console.log('solution:', value_cells, solution);
                     solutions.push(solution);
                 }
             }
@@ -110,7 +94,6 @@ class Grid {
         }
 
         function* solve_recur(cells) {
-            console.log('recur start, cells:', cells);
             if (cells.length === 0) {
                 yield [];
                 return;
@@ -120,20 +103,11 @@ class Grid {
             for (let partial_solution of solve_recur(rest, true)) {
                 let res = [0].concat(partial_solution);
                 yield res;
-                console.log('neighs:', first.tmp_neigh.map((neigh) => {
-                    return neigh.tmp_value;
-                }));
-                if (first.tmp_neigh.every((neigh) => {
-                    return neigh.tmp_value > 0;
-                })) {
-                    first.tmp_neigh.map((neigh) => {
-                        return neigh.tmp_value -= 1;
-                    });
+                if (first.tmp_neigh.every((neigh) => neigh.tmp_value > 0)) {
+                    first.tmp_neigh.map((neigh) => neigh.tmp_value -= 1);
                     let res = [1].concat(partial_solution);
                     yield res;
-                    first.tmp_neigh.map((neigh) => {
-                        return neigh.tmp_value += 1;
-                    });
+                    first.tmp_neigh.map((neigh) => neigh.tmp_value += 1);
                 }
             }
 
@@ -141,18 +115,13 @@ class Grid {
         }
 
         let solutions = solve_wrapper(cells);
-        console.log(solutions);
         this.has_solution = !!solutions.length;
         if (!solutions.length)
             return
         cells.map((cell, i) => {
-            if (solutions.every((s) => {
-                return s[i] === 0
-            }))
+            if (solutions.every((s) => s[i] === 0))
                 cell.is_green = true;
-            if (solutions.every((s) => {
-                return s[i] === 1
-            }))
+            if (solutions.every((s) => s[i] === 1))
                 cell.is_red = true;
         });
     }
