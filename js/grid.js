@@ -3,6 +3,8 @@ class Grid {
         this.w = w;
         this.h = h;
         this.cells = []
+
+        this.has_solution = true;
         for (let i = 0; i < this.h; i++) {
             let row = []
             this.cells[i] = row
@@ -23,10 +25,13 @@ class Grid {
     }
 
     draw(sketch) {
-
+        if (this.has_solution)
+            sketch.background(220);
+        else
+            sketch.background(220, 150, 150);
         this.iter_cells().map((c) => {
             c.draw(sketch)
-        }).exhaust();
+        });
     }
 
     xy_to_ij(x, y) {
@@ -50,14 +55,11 @@ class Grid {
 
         let cell = this.cells[i][j];
         if (button === 0) {
-            if (cell.value === -1)
-                cell.value++;
             cell.value++;
-        } else if (cell.value > 0) {
-            cell.value = -1;
-        } else {
-            return;
-        }
+        } else if (cell.value !== CELL_MONSTER) {
+            cell.value--;
+        } else
+            cell.value = CELL_CLOSED;
         this.solve();
     }
 
@@ -80,7 +82,7 @@ class Grid {
         this.iter_cells().map((cell) => {
             cell.check_is_to_solve();
             cell.tmp_value = cell.value;
-        }).exhaust();
+        });
 
         let value_cells = self.iter_cells().array().filter((c) => {
             return c.value >= 0
@@ -116,7 +118,6 @@ class Grid {
             let first = cells[0];
             let rest = cells.slice(1);
             for (let partial_solution of solve_recur(rest, true)) {
-                // let res = partial_solution.concat([0]);
                 let res = [0].concat(partial_solution);
                 yield res;
                 console.log('neighs:', first.tmp_neigh.map((neigh) => {
@@ -128,7 +129,6 @@ class Grid {
                     first.tmp_neigh.map((neigh) => {
                         return neigh.tmp_value -= 1;
                     });
-                    // let res = partial_solution.concat([1]);
                     let res = [1].concat(partial_solution);
                     yield res;
                     first.tmp_neigh.map((neigh) => {
@@ -142,6 +142,7 @@ class Grid {
 
         let solutions = solve_wrapper(cells);
         console.log(solutions);
+        this.has_solution = !!solutions.length;
         if (!solutions.length)
             return
         cells.map((cell, i) => {

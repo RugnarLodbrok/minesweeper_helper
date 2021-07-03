@@ -2,12 +2,10 @@ let grid;
 
 function p5_func(sketch) {
     sketch.setup = () => {
-        sketch.createCanvas(800, 600);
-        grid = new Grid(6,6);
+        grid = new Grid(8, 6);
+        sketch.createCanvas(grid.w * CELL_STEP + CELL_PAD, grid.h * CELL_STEP + CELL_PAD);
     };
     sketch.draw = () => {
-
-        sketch.background(220);
 
 
         grid.draw(sketch);
@@ -18,7 +16,7 @@ function p5_func(sketch) {
         grid.click(x, y, 0);
         return false;
     }
-    document.oncontextmenu = (e)=>{
+    document.oncontextmenu = (e) => {
         e.preventDefault();
         let x = e.clientX;
         let y = e.clientY;

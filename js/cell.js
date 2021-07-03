@@ -2,6 +2,9 @@ const CELL_SIZE = 64;
 const CELL_PAD = 5;
 const CELL_STEP = CELL_SIZE + CELL_PAD
 
+const CELL_CLOSED = -1
+const CELL_MONSTER = -2
+
 class Cell {
     constructor(i, j) {
         this.i = i;
@@ -54,11 +57,16 @@ class Cell {
         sketch.textAlign('center', 'center');
         sketch.rect(x, y, CELL_SIZE, CELL_SIZE);
 
-        if (this.value > 0)
+        if (this.value === CELL_MONSTER){
+            sketch.fill(255, 0, 0);
+            sketch.circle(cx, cy, 24);
+            return;
+        }
+        if (this.value >= 0)
             sketch.text(this.value, cx, cy);
         if (this.is_red) {
-            sketch.fill(255, 0, 0)
-            sketch.circle(cx, cy, 5)
+            sketch.fill(255, 0, 0);
+            sketch.circle(cx, cy, 5);
         } else if (this.is_green) {
             sketch.fill(0, 255, 0)
             sketch.circle(cx, cy, 5)
