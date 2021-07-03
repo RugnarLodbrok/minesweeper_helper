@@ -82,6 +82,7 @@ class Cell {
 }
 
 function color_for_odds(odds) {
+    // why use sqrt: https://youtu.be/LKnqECcg6Gw?list=LL
     let red = Math.sqrt(odds);
     let green = Math.sqrt(1 - odds);
     return [red * 255, green * 255, 0];
