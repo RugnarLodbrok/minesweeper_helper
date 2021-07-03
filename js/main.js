@@ -7,7 +7,6 @@ function p5_func(sketch) {
     };
     sketch.draw = () => {
 
-
         grid.draw(sketch);
     };
     sketch.mouseClicked = (e) => {

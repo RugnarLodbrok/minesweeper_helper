@@ -17,3 +17,19 @@ Generator.prototype.exhaust = function (thisArg) {
 Generator.prototype.array = function (thisArg) {
     return Array.from(this);
 };
+
+let add = (a, b) => a + b;
+
+
+function* zip(...arrays) {
+    let len = Math.min(...arrays.map((a) => a.length))
+
+    for (let i = 0; i < len; ++i)
+        yield arrays.map((a) => a[i]);
+}
+
+// let item, iterator = gen();
+//
+// while (item = iterator.next(), !item.done) {
+//     console.log(item.value);
+// }

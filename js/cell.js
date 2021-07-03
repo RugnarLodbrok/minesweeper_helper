@@ -18,8 +18,7 @@ class Cell {
         this.is_to_sove = false;
         this.tmp_value = -1;
         this.tmp_neigh = [];
-        this.is_red = false;
-        this.is_green = false;
+        this.odds = 0;
     }
 
     value_neighbours() {
@@ -70,14 +69,20 @@ class Cell {
         }
         if (this.value >= 0)
             sketch.text(this.value, cx, cy);
-        if (this.is_red) {
-            sketch.fill(255, 0, 0);
+        if (this.is_to_sove) {
+            sketch.fill(...color_for_odds(this.odds));
+            if (.05 < this.odds && this.odds < .95) {
+                sketch.textSize(CELL_SIZE / 3);
+                sketch.text(Math.round(this.odds * 100) / 100, cx, cy - CELL_SIZE / 4);
+            }
             sketch.circle(cx, cy, 5);
-        } else if (this.is_green) {
-            sketch.fill(0, 255, 0)
-            sketch.circle(cx, cy, 5)
-        } else if (this.is_to_sove)
-            sketch.text('?', x + CELL_SIZE / 2, y + CELL_SIZE / 2);
+        }
 
     }
+}
+
+function color_for_odds(odds) {
+    let red = Math.sqrt(odds);
+    let green = Math.sqrt(1 - odds);
+    return [red * 255, green * 255, 0];
 }

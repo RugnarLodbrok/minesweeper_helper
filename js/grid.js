@@ -3,6 +3,7 @@ class Grid {
         this.w = w;
         this.h = h;
         this.cells = []
+        this._is_drawn = false;
 
         this.has_solution = true;
         for (let i = 0; i < this.h; i++) {
@@ -25,6 +26,9 @@ class Grid {
     }
 
     draw(sketch) {
+        if (this._is_drawn)
+            return
+        this._is_drawn = true;
         if (this.has_solution)
             sketch.background(220);
         else
@@ -48,6 +52,7 @@ class Grid {
         let i;
         let j;
         [i, j] = this.xy_to_ij(x, y);
+
         if (i < 0)
             return;
 
@@ -76,12 +81,16 @@ class Grid {
 
     solve() {
         let self = this;
+        let cells;
+        let value_cells;
 
-        // preparation
-        this.iter_cells().map((cell) => cell.check_is_to_solve());
-        let cells = self.iter_cells(true).array();
-        let value_cells = self.iter_cells().array().filter((c) => (c.value >= 0));
+        function prepare() {
+            // preparation
+            self.iter_cells().map((cell) => cell.check_is_to_solve());
+            cells = self.iter_cells(true).array();
+            value_cells = self.iter_cells().array().filter((c) => (c.value >= 0));
 
+        }
         function solve_wrapper(cells) {
             let solutions = [];
             for (let solution of solve_recur(cells)) {
@@ -101,28 +110,31 @@ class Grid {
             let first = cells[0];
             let rest = cells.slice(1);
             for (let partial_solution of solve_recur(rest, true)) {
-                let res = [0].concat(partial_solution);
-                yield res;
-                if (first.tmp_neigh.every((neigh) => neigh.tmp_value > 0)) {
-                    first.tmp_neigh.map((neigh) => neigh.tmp_value -= 1);
-                    let res = [1].concat(partial_solution);
-                    yield res;
-                    first.tmp_neigh.map((neigh) => neigh.tmp_value += 1);
+                yield [0].concat(partial_solution);
+                if (first.tmp_neigh.every((cell) => cell.tmp_value > 0)) {
+                    first.tmp_neigh.map((cell) => cell.tmp_value -= 1);
+                    yield [1].concat(partial_solution);
+                    first.tmp_neigh.map((cell) => cell.tmp_value += 1);
                 }
             }
-
-
         }
 
-        let solutions = solve_wrapper(cells);
-        this.has_solution = !!solutions.length;
-        if (!solutions.length)
-            return
-        cells.map((cell, i) => {
-            if (solutions.every((s) => s[i] === 0))
-                cell.is_green = true;
-            if (solutions.every((s) => s[i] === 1))
-                cell.is_red = true;
-        });
+        function solution_post_process(solutions){
+            let n_solutions = solutions.length;
+
+            self.has_solution = !!n_solutions;
+            if (!n_solutions)
+                return
+
+            let odds = zip(...solutions).map((cell_vals) => cell_vals.reduce(add) / n_solutions);
+            console.log(odds);
+
+            cells.map((cell, i) => {
+                cell.odds = odds[i];
+            });
+        }
+        prepare();
+        solution_post_process(solve_wrapper(cells));
+        this._is_drawn = false;
     }
 }
