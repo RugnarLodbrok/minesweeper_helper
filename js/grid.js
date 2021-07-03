@@ -1,49 +1,3 @@
-const CELL_SIZE = 64;
-const CELL_PAD = 5;
-const CELL_STEP = CELL_SIZE + CELL_PAD
-
-class Cell {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-
-        this.value = -1;
-        this.neighbours = [];
-        this.is_to_sove = false;
-        this.tmp_value = -1;
-        this.tmp_neigh = [];
-    }
-
-    join(other) {
-        this.neighbours.push(other);
-        other.neighbours.push(this);
-        // console.log('join!')
-    }
-
-    check_is_to_solve() {
-        this.is_to_sove = false;
-        if (this.value >= 0)
-            return;
-        for (let other of this.neighbours) {
-            if (other.value >= 0) {
-                this.is_to_sove = true;
-                return
-            }
-        }
-    }
-
-    draw(sketch) {
-        let x = this.x;
-        let y = this.y;
-
-        sketch.rect(x, y, CELL_SIZE, CELL_SIZE);
-        if (this.value > 0)
-            sketch.text(this.value, x + CELL_SIZE / 2, y + CELL_SIZE / 2);
-        if (this.is_to_sove)
-            sketch.text('?', x + CELL_SIZE / 2, y + CELL_SIZE / 2);
-    }
-}
-
 class Grid {
     constructor(w, h) {
         this.w = w;
@@ -53,7 +7,7 @@ class Grid {
             let row = []
             this.cells[i] = row
             for (let j = 0; j < this.w; j++) {
-                row[j] = new Cell(CELL_PAD + j * CELL_STEP, CELL_PAD + i * CELL_STEP);
+                row[j] = new Cell(i, j);
                 if (j > 0)
                     row[j - 1].join(row[j])
                 if (i > 0) {
@@ -69,10 +23,7 @@ class Grid {
     }
 
     draw(sketch) {
-        sketch.fill(180);
-        sketch.stroke(0);
-        sketch.textSize(32);
-        sketch.textAlign('center', 'center');
+
         this.iter_cells().map((c) => {
             c.draw(sketch)
         }).exhaust();
@@ -131,6 +82,9 @@ class Grid {
             cell.tmp_value = cell.value;
         }).exhaust();
 
+        let value_cells = self.iter_cells().array().filter((c) => {
+            return c.value >= 0
+        });
         let cells = self.iter_cells(true).array();
         for (let cell of cells) {
             cell.tmp_neigh = cell.neighbours.filter((n) => {
@@ -140,14 +94,12 @@ class Grid {
 
         function solve_wrapper(cells) {
             let solutions = [];
-            let value_cells = Array.from(self.iter_cells()).filter((c) => {
-                return c.value >= 0
-            });
             console.log('value cells:', value_cells);
             for (let solution of solve_recur(cells)) {
-                if (value_cells.every((c) => {
+                let viable = value_cells.every((c) => {
                     return c.tmp_value === 0
-                })) {
+                });
+                if (viable) {
                     console.log('solution:', value_cells, solution);
                     solutions.push(solution);
                 }
@@ -161,10 +113,12 @@ class Grid {
                 yield [];
                 return;
             }
-            let first = cells[cells.length - 1];
+            let first = cells[0];
             let rest = cells.slice(1);
             for (let partial_solution of solve_recur(rest, true)) {
-                yield partial_solution.concat([0]);
+                // let res = partial_solution.concat([0]);
+                let res = [0].concat(partial_solution);
+                yield res;
                 console.log('neighs:', first.tmp_neigh.map((neigh) => {
                     return neigh.tmp_value;
                 }));
@@ -174,7 +128,9 @@ class Grid {
                     first.tmp_neigh.map((neigh) => {
                         return neigh.tmp_value -= 1;
                     });
-                    yield partial_solution.concat([1]);
+                    // let res = partial_solution.concat([1]);
+                    let res = [1].concat(partial_solution);
+                    yield res;
                     first.tmp_neigh.map((neigh) => {
                         return neigh.tmp_value += 1;
                     });
@@ -186,5 +142,17 @@ class Grid {
 
         let solutions = solve_wrapper(cells);
         console.log(solutions);
+        if (!solutions.length)
+            return
+        cells.map((cell, i) => {
+            if (solutions.every((s) => {
+                return s[i] === 0
+            }))
+                cell.is_green = true;
+            if (solutions.every((s) => {
+                return s[i] === 1
+            }))
+                cell.is_red = true;
+        });
     }
 }

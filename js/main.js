@@ -3,7 +3,7 @@ let grid;
 function p5_func(sketch) {
     sketch.setup = () => {
         sketch.createCanvas(800, 600);
-        grid = new Grid(2, 3);
+        grid = new Grid(6,6);
     };
     sketch.draw = () => {
 
@@ -29,7 +29,3 @@ function p5_func(sketch) {
 }
 
 new p5(p5_func, document.getElementById("sketch"));
-// document.oncontextmenu = (e)=>{
-//     console.log('right click', e);
-//     e.preventDefault();
-// }
